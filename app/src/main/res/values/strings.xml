@@ -4,4 +4,6 @@
     <string name="pause">Pause</string>
     <string name="edit">Edit</string>
     <string name="apply">Apply</string>
+    <string name="finish_day">Finish Day</string>
+    <string name="daily_goal">Daily Goal</string>
 </resources>

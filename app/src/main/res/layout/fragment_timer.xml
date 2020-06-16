@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="time"
-            type="String" />
+            name="timerViewModel"
+            type="com.enriher.grindgame.TimerViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -29,21 +29,22 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="00:00:00"
-            tools:visibility="gone" />
+            tools:visibility='@{timerViewModel.editingTime ? 0 : 8}' />
 
         <TextView
             android:id="@+id/textClock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{time}"
+            android:text="@{timerViewModel.currentTimeString}"
             android:textSize="@dimen/clockText"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.39"
             tools:text="00:00:00"
-            tools:visibility="visible" />
+            tools:visibility='@{timerViewModel.editingTime ? 4 : 0}' />
 
         <Button
             android:id="@+id/buttonStart"
@@ -52,25 +53,66 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            android:text="@string/start"
+            android:onClick="@{() -> timerViewModel.handleStartButton()}"
+            android:text="@{timerViewModel.buttonStartText}"
             android:textSize="@dimen/buttonText"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/buttonEdit"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textClock"
-            app:layout_constraintVertical_bias="0.498" />
+            app:layout_constraintVertical_bias="0.18"
+            tools:text="@string/start" />
 
         <Button
             android:id="@+id/buttonEdit"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/edit"
+            android:text="@{timerViewModel.buttonEditText}"
             android:textSize="@dimen/buttonText"
             app:layout_constraintBaseline_toBaselineOf="@+id/buttonStart"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/buttonStart" />
+            app:layout_constraintStart_toEndOf="@+id/buttonStart"
+            tools:text="@string/edit" />
+
+        <Button
+            android:id="@+id/buttonFinishDay"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> timerViewModel.finishDay()}"
+            android:text="@string/finish_day"
+            android:textSize="@dimen/buttonText"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonStart"
+            app:layout_constraintVertical_bias="0.42000002" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="200dp"
+            android:progress="@{timerViewModel.dailyProgess}"
+            app:layout_constraintBottom_toTopOf="@+id/textClock"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/daily_goal"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.76" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

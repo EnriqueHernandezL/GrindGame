@@ -1,13 +1,13 @@
-package com.enriher.grindgame
+package com.enriher.grindgame.timer
 
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import com.enriher.grindgame.R
 import com.enriher.grindgame.databinding.FragmentTimerBinding
 
 
@@ -21,8 +21,15 @@ class TimerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timer, container, false)
-        viewModel = ViewModelProviders.of(this).get(TimerViewModel::class.java)
+        // Get a reference to the binding object and inflate the fragment views
+        binding = DataBindingUtil.inflate(inflater,
+            R.layout.fragment_timer, container, false)
+
+        // New TimerModelFactory
+        val viewModelFactory = TimerViewModelFactory()
+
+        // Reference to ViewModel
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(TimerViewModel::class.java)
 
         // Data binding working with LiveData
         binding.timerViewModel = viewModel

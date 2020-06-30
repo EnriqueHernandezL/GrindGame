@@ -1,11 +1,10 @@
-package com.enriher.grindgame
+package com.enriher.grindgame.timer
 
-import android.os.Handler
-import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.*
 
 class TimerViewModel : ViewModel() {
 
@@ -38,12 +37,15 @@ class TimerViewModel : ViewModel() {
         secondsToTime(seconds)
     }
 
-    val dailyProgess = Transformations.map(seconds) {seconds ->
+    val dailyProgess = Transformations.map(seconds) { seconds ->
         (100 * seconds) / dailyGoal
     }
 
-    private var handler = Handler()
-    private lateinit var runnable: Runnable
+//    private var handler = Handler()
+//    private lateinit var runnable: Runnable
+
+    private var timerJob = Job()
+    private val uiScope = CoroutineScope(Dispatchers.Main + timerJob)
 
     init {
         _seconds.value = 0
@@ -57,15 +59,14 @@ class TimerViewModel : ViewModel() {
 
     fun editTime() {
         // If timer running, pause
-        if(timerRunning.value == true) {
+        if (timerRunning.value == true) {
             handleStartButton()
         }
     }
 
     fun applyEditTime(time: String) {
-        // TODO extract in method and move to viewModel
         val input = time.split(":")
-        if(input.size != 3) {
+        if (input.size != 3) {
             // TODO: Handle error
             // TODO: Handle no Int inputs
             return
@@ -74,7 +75,7 @@ class TimerViewModel : ViewModel() {
     }
 
     fun handleStartButton() {
-        if(_timerRunning.value == true) {
+        if (_timerRunning.value == true) {
             pauseTimer()
         } else {
             startTimer()
@@ -85,25 +86,23 @@ class TimerViewModel : ViewModel() {
 
     private fun startTimer() {
         println("startTimer")
-        // Create the runnable action
-        runnable = Runnable {
-            println("_seconds value" + _seconds.value)
-            println("seconds value" + seconds.value)
-            _seconds.value = _seconds.value?.plus(1)
-            handler.postDelayed(runnable, 1000)
-        }
 
-        // Start Timer
-        handler.post(runnable)
+        uiScope.launch {
+            delay(1000)
+            while (timerRunning.value == true) {
+                _seconds.value = _seconds.value?.plus(1)
+                delay(1000)
+            }
+        }
     }
 
     private fun pauseTimer() {
-        handler.removeCallbacks(runnable)
+//        handler.removeCallbacks(runnable)
     }
 
     fun finishDay() {
         // Stop timer if running
-        if(timerRunning.value == true) {
+        if (timerRunning.value == true) {
             handleStartButton()
         }
 
@@ -119,5 +118,12 @@ class TimerViewModel : ViewModel() {
             "%02d",
             minutes
         )}:${String.format("%02d", seconds)}"
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // TODO: Actually the clock should never stop, even if the viewModel gets destroyed (eg if view destroyed)
+        timerJob.cancel()
+//        handler.removeCallbacks(runnable)
     }
 }

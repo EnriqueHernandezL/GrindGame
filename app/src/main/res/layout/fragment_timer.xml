@@ -5,13 +5,13 @@
     <data>
         <variable
             name="timerViewModel"
-            type="com.enriher.grindgame.TimerViewModel" />
+            type="com.enriher.grindgame.timer.TimerViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".TimerFragment">
+        tools:context=".timer.TimerFragment">
 
         <EditText
             android:id="@+id/textEditClock"

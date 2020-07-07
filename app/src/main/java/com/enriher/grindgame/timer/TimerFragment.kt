@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.enriher.grindgame.R
+import com.enriher.grindgame.database.GrindDatabase
 import com.enriher.grindgame.databinding.FragmentTimerBinding
 import kotlin.concurrent.timer
 
@@ -29,25 +30,32 @@ class TimerFragment : Fragment() {
             R.layout.fragment_timer, container, false
         )
 
+        // Reference to application, needed for database
+        val application = requireNotNull(this.activity).application
+
+        // Reference to dao
+        val dataSource = GrindDatabase.getInstance(application).grindDatabaseDao
+
         // New TimerModelFactory
-        val viewModelFactory = TimerViewModelFactory()
+        val viewModelFactory = TimerViewModelFactory(dataSource)
 
         // Reference to ViewModel
         timerViewModel =
             ViewModelProviders.of(this, viewModelFactory).get(TimerViewModel::class.java)
 
         // Data binding working with LiveData
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.timerViewModel = timerViewModel
-        binding.lifecycleOwner = this
 
-        timerViewModel.editTimeEvent.observe(this, Observer {
+
+        timerViewModel.editTimeEvent.observe(viewLifecycleOwner, Observer {
             if (it == true) {
                 binding.textEditClock.setText(timerViewModel.currentTimeString.value)
                 timerViewModel.doneEditTimeEvent()
             }
         })
 
-        timerViewModel.applyEditTimeEvent.observe(this, Observer {
+        timerViewModel.applyEditTimeEvent.observe(viewLifecycleOwner, Observer {
             if (it == true) {
                 timerViewModel.applyEditTime(binding.textEditClock.text.toString())
                 timerViewModel.doneApplyEditTimeEvent()

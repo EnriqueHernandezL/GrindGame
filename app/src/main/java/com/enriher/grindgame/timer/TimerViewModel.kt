@@ -4,14 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import com.enriher.grindgame.database.GrindDatabaseDao
+import com.enriher.grindgame.database.GrindTimer
 import kotlinx.coroutines.*
 
-class TimerViewModel : ViewModel() {
-
-    // Fragment data
+class TimerViewModel(
+    val database: GrindDatabaseDao
+) : ViewModel() {
 
     // TODO: Set in the app
-    private val dailyGoal = 28800
+    private val dailyGoal = 28800 // 8 hours in seconds
 
     private val _seconds = MutableLiveData<Int>()
     val seconds: LiveData<Int>
@@ -55,10 +57,19 @@ class TimerViewModel : ViewModel() {
     private val uiScope = CoroutineScope(Dispatchers.Main + timerJob)
 
     init {
-        _seconds.value = 0
+        uiScope.launch {
+            println(getTimerFromDatabase())
+            _seconds.value = getTimerFromDatabase()?.timeInSeconds ?: 0
+        }
         _timerRunning.value = false
         _editingTime.value = false
         _editTimeEvent.value = false
+    }
+
+    private suspend fun getTimerFromDatabase(): GrindTimer? {
+        return withContext(Dispatchers.IO) {
+            database.getGrindTimer()
+        }
     }
 
     fun handleEditButton() {
@@ -110,22 +121,20 @@ class TimerViewModel : ViewModel() {
         _timerRunning.value = !(_timerRunning.value ?: false)
     }
 
-
     private fun startTimer() {
-        println("startTimer")
-
         uiScope.launch {
             delay(1000)
             while (timerRunning.value == true) {
                 _seconds.value = _seconds.value?.plus(1)
 //                println("Seconds: " + seconds.value)
+                updateTimeInDatabase()
                 delay(1000)
             }
         }
     }
 
     private fun pauseTimer() {
-//        handler.removeCallbacks(runnable)
+        // TODO: Do something?
     }
 
     fun finishDay() {
@@ -149,9 +158,41 @@ class TimerViewModel : ViewModel() {
     }
 
     override fun onCleared() {
-        super.onCleared()
-        // TODO: Actually the clock should never stop, even if the viewModel gets destroyed (eg if view destroyed)
+        println("onCleared called")
+//        _timerRunning.value = false
+//
+//        // Update database
+//        uiScope.launch {
+//            updateTimeInDatabase()
+//        }
+
+        // TODO: Cancel job in only view destroyed (i.e. quit app)
         timerJob.cancel()
-//        handler.removeCallbacks(runnable)
+
+        super.onCleared()
+    }
+
+    private suspend fun updateTimeInDatabase() {
+        println("Updating database")
+        val timerInDatabase = getTimerFromDatabase()
+        if (timerInDatabase != null) {
+            timerInDatabase.timeInSeconds = _seconds.value!!
+            update(timerInDatabase)
+        } else {
+            insert(GrindTimer(timeInSeconds = seconds.value!!))
+        }
+        println("Database updated")
+    }
+
+    private suspend fun insert(grindTimer: GrindTimer) {
+        withContext(Dispatchers.IO) {
+            database.insert(grindTimer)
+        }
+    }
+
+    private suspend fun update(grindTimer: GrindTimer) {
+        withContext(Dispatchers.IO) {
+            database.update(grindTimer)
+        }
     }
 }

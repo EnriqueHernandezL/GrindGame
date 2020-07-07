@@ -71,6 +71,7 @@
             android:layout_height="wrap_content"
             android:text="@{timerViewModel.buttonEditText}"
             android:textSize="@dimen/buttonText"
+            android:onClick="@{()-> timerViewModel.handleEditButton()}"
             app:layout_constraintBaseline_toBaselineOf="@+id/buttonStart"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"

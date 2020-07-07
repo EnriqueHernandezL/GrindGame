@@ -41,8 +41,15 @@ class TimerViewModel : ViewModel() {
         (100 * seconds) / dailyGoal
     }
 
-//    private var handler = Handler()
-//    private lateinit var runnable: Runnable
+    // Edit time event
+    private val _editTimeEvent = MutableLiveData<Boolean>()
+    val editTimeEvent: LiveData<Boolean>
+        get() = _editTimeEvent
+
+    // Apply Edit time event
+    private val _applyEditTimeEvent = MutableLiveData<Boolean>()
+    val applyEditTimeEvent: LiveData<Boolean>
+        get() = _applyEditTimeEvent
 
     private var timerJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + timerJob)
@@ -51,17 +58,37 @@ class TimerViewModel : ViewModel() {
         _seconds.value = 0
         _timerRunning.value = false
         _editingTime.value = false
+        _editTimeEvent.value = false
     }
 
     fun handleEditButton() {
+        if (_editingTime.value ?: false) {
+            _applyEditTimeEvent.value = true
+            // applyEditTime() will be called back with the fragment with the inputted value
+        } else {
+            editTime()
+        }
         _editingTime.value = !(_editingTime.value ?: false)
     }
 
-    fun editTime() {
+    fun doneEditTimeEvent() {
+        _editTimeEvent.value = false
+    }
+
+    fun doneApplyEditTimeEvent() {
+        _applyEditTimeEvent.value = false
+    }
+
+    private fun editTime() {
+        // Fire edit time event
+        // TextEditView will be updated in the timerFragment
+        _editTimeEvent.value = true
+
         // If timer running, pause
         if (timerRunning.value == true) {
             handleStartButton()
         }
+
     }
 
     fun applyEditTime(time: String) {
@@ -91,6 +118,7 @@ class TimerViewModel : ViewModel() {
             delay(1000)
             while (timerRunning.value == true) {
                 _seconds.value = _seconds.value?.plus(1)
+//                println("Seconds: " + seconds.value)
                 delay(1000)
             }
         }

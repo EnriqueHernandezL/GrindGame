@@ -6,53 +6,55 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.enriher.grindgame.R
 import com.enriher.grindgame.databinding.FragmentTimerBinding
+import kotlin.concurrent.timer
 
 
 class TimerFragment : Fragment() {
 
-    private lateinit var viewModel: TimerViewModel
+    private lateinit var timerViewModel: TimerViewModel
     private lateinit var binding: FragmentTimerBinding
-    
-    override fun onCreateView (
+
+    override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
         // Get a reference to the binding object and inflate the fragment views
-        binding = DataBindingUtil.inflate(inflater,
-            R.layout.fragment_timer, container, false)
+        binding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_timer, container, false
+        )
 
         // New TimerModelFactory
         val viewModelFactory = TimerViewModelFactory()
 
         // Reference to ViewModel
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(TimerViewModel::class.java)
+        timerViewModel =
+            ViewModelProviders.of(this, viewModelFactory).get(TimerViewModel::class.java)
 
         // Data binding working with LiveData
-        binding.timerViewModel = viewModel
-        binding.lifecycleOwner = viewLifecycleOwner
+        binding.timerViewModel = timerViewModel
+        binding.lifecycleOwner = this
 
-        binding.buttonEdit.setOnClickListener { handleEditButton() }
+        timerViewModel.editTimeEvent.observe(this, Observer {
+            if (it == true) {
+                binding.textEditClock.setText(timerViewModel.currentTimeString.value)
+                timerViewModel.doneEditTimeEvent()
+            }
+        })
+
+        timerViewModel.applyEditTimeEvent.observe(this, Observer {
+            if (it == true) {
+                timerViewModel.applyEditTime(binding.textEditClock.text.toString())
+                timerViewModel.doneApplyEditTimeEvent()
+            }
+        })
 
         return binding.root
-    }
-
-    private fun handleEditButton() {
-        if(viewModel.editingTime.value ?: false) {
-            viewModel.applyEditTime(binding.textEditClock.text.toString())
-        } else {
-            editTime()
-        }
-        viewModel.handleEditButton() // Change boolean flag
-    }
-
-    private fun editTime() {
-        viewModel.editTime()
-        // Set text in input to current time
-        binding.textEditClock.setText(viewModel.currentTimeString.value)
     }
 
 }
